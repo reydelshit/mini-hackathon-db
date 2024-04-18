@@ -13,11 +13,10 @@ switch ($method) {
 
         if (isset($_GET['event_id'])) {
             $event_id = $_GET['event_id'];
-            $sql = "SELECT * 
-            FROM wire_transfer 
-            WHERE event_id = :event_id AND (wire_type = 'gcash' OR wire_type = 'paymaya')
-            ORDER BY created_at DESC
-            LIMIT 2;";
+            $sql = "SELECT event_records.*, events.event_title, students.student_name, students.student_profile
+            FROM event_records 
+            INNER JOIN events ON events.event_id = event_records.event_id 
+            INNER JOIN students ON students.student_id_code = event_records.student_code_id WHERE event_records.event_id = :event_id AND event_records.payment_type != 'cash'";
         }
 
         if (!isset($event_id)) {
@@ -39,31 +38,28 @@ switch ($method) {
 
         break;
 
+    case "PUT":
+        $student = json_decode(file_get_contents('php://input'));
 
-    case "POST":
-        $qr_code = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO wire_transfer (wire_id, wire_type, wire_image, created_at, event_id) 
-                VALUES (null, :wire_type, :wire_image, :created_at, :event_id)";
+        $sql = "UPDATE event_records 
+                    SET payment_status = :payment_status
+                    WHERE event_records_id = :event_records_id";
 
         $stmt = $conn->prepare($sql);
 
-        $created_at = date('Y-m-d H:i:s');
-
-        $stmt->bindParam(':wire_type', $qr_code->wire_type);
-        $stmt->bindParam(':wire_image', $qr_code->wire_image);
-        $stmt->bindParam(':created_at', $created_at);
-        $stmt->bindParam(':event_id', $qr_code->event_id);
+        $stmt->bindParam(':payment_status', $student->payment_status);
+        $stmt->bindParam(':event_records_id', $student->event_records_id);
 
 
         if ($stmt->execute()) {
             $response = [
                 "status" => "success",
-                "message" => "qr_code added successfully"
+                "message" => "event_records updated successfully"
             ];
         } else {
             $response = [
                 "status" => "error",
-                "message" => "qr_code to add product"
+                "message" => "event_records to update product"
             ];
         }
 

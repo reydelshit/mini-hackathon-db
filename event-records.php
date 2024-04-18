@@ -15,7 +15,7 @@ switch ($method) {
             $sql = "SELECT event_records.*, events.event_title, students.student_name, students.student_profile
             FROM event_records 
             INNER JOIN events ON events.event_id = event_records.event_id 
-            INNER JOIN students ON students.student_id_code = event_records.student_code_id WHERE event_records.event_id = :event_id";
+            INNER JOIN students ON students.student_id_code = event_records.student_code_id WHERE event_records.event_id = :event_id ";
         }
 
         if (isset($_GET['student_code_id'])) {
