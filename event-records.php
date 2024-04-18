@@ -13,11 +13,12 @@ switch ($method) {
 
         if (isset($_GET['event_id'])) {
             $event_id = $_GET['event_id'];
-            $sql = "SELECT * FROM events WHERE event_id = :event_id";
+            $sql = "SELECT events.event_title, students.student_name, students.student_profile, event_records.event_id, event_records.amount,event_records.student_code_id, event_records.payment_type, event_records.created_at FROM event_records INNER JOIN events ON events.event_id = event_records.event_id
+            INNER JOIN students ON students.student_id_code = event_records.student_code_id WHERE event_records.event_id = :event_id";
         }
 
         if (!isset($event_id)) {
-            $sql = "SELECT * FROM events ORDER BY event_id DESC";
+            $sql = "SELECT * FROM event_records ORDER BY event_records_id DESC";
         }
 
         if (isset($sql)) {
