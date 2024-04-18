@@ -10,44 +10,57 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case "GET":
 
-        $sql = "SELECT * FROM students ORDER BY student_id DESC";
 
+        if (isset($_GET['event_id'])) {
+            $event_id = $_GET['event_id'];
+            $sql = "SELECT * FROM events WHERE event_id = :event_id";
+        }
+
+        if (!isset($event_id)) {
+            $sql = "SELECT * FROM events ORDER BY event_id DESC";
+        }
 
         if (isset($sql)) {
             $stmt = $conn->prepare($sql);
 
+            if (isset($event_id)) {
+                $stmt->bindParam(':event_id', $event_id);
+            }
+
             $stmt->execute();
-            $bidding = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $event = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode($bidding);
+            echo json_encode($event);
         }
-
 
         break;
 
 
     case "POST":
-        $student = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO students (student_id, student_id_code, student_name, student_profile, created_at) 
-        VALUES (null, :student_id_code, :student_name, :student_profile, :created_at)";
+        $payment = json_decode(file_get_contents('php://input'));
+        $sql = "INSERT INTO event_records (event_records_id, event_id, amount, student_code_id, created_at, payment_type) 
+                VALUES (null, :event_id, :amount, :student_code_id, :created_at, :payment_type)";
 
         $stmt = $conn->prepare($sql);
 
         $created_at = date('Y-m-d H:i:s');
-        $stmt->bindParam(':student_id_code', $student->student_id_code);
-        $stmt->bindParam(':student_name', $student->student_name);
-        $stmt->bindParam(':student_profile', $student->student_profile);
+
+        $stmt->bindParam(':event_id', $payment->event_id);
+        $stmt->bindParam(':amount', $payment->amount);
+        $stmt->bindParam(':student_code_id', $payment->student_code_id);
         $stmt->bindParam(':created_at', $created_at);
+        $stmt->bindParam(':payment_type', $payment->payment_type);
+
 
         if ($stmt->execute()) {
             $response = [
                 "status" => "success",
-                "message" => "Product added successfully"
+                "message" => "payment added successfully"
             ];
         } else {
             $response = [
                 "status" => "error",
-                "message" => "Failed to add product"
+                "message" => "payment to add product"
             ];
         }
 

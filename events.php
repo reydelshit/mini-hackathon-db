@@ -10,34 +10,47 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case "GET":
 
-        $sql = "SELECT * FROM students ORDER BY student_id DESC";
 
+        if (isset($_GET['event_id'])) {
+            $event_id = $_GET['event_id'];
+            $sql = "SELECT * FROM events WHERE event_id = :event_id";
+        }
+
+        if (!isset($event_id)) {
+            $sql = "SELECT * FROM events ORDER BY event_id DESC";
+        }
 
         if (isset($sql)) {
             $stmt = $conn->prepare($sql);
 
+            if (isset($event_id)) {
+                $stmt->bindParam(':event_id', $event_id);
+            }
+
             $stmt->execute();
-            $bidding = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $event = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode($bidding);
+            echo json_encode($event);
         }
-
 
         break;
 
 
     case "POST":
-        $student = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO students (student_id, student_id_code, student_name, student_profile, created_at) 
-        VALUES (null, :student_id_code, :student_name, :student_profile, :created_at)";
+        $event = json_decode(file_get_contents('php://input'));
+        $sql = "INSERT INTO events (event_id, event_title, event_type, event_date, created_at, status) 
+                VALUES (null, :event_title, :event_type, :event_date, :created_at, :status)";
 
         $stmt = $conn->prepare($sql);
 
         $created_at = date('Y-m-d H:i:s');
-        $stmt->bindParam(':student_id_code', $student->student_id_code);
-        $stmt->bindParam(':student_name', $student->student_name);
-        $stmt->bindParam(':student_profile', $student->student_profile);
+
+        $stmt->bindParam(':event_title', $event->event_title);
+        $stmt->bindParam(':event_type', $event->event_type);
+        $stmt->bindParam(':event_date', $event->event_date);
         $stmt->bindParam(':created_at', $created_at);
+        $stmt->bindParam(':status', $event->status);
+
 
         if ($stmt->execute()) {
             $response = [
