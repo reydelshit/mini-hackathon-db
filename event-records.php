@@ -20,7 +20,8 @@ switch ($method) {
 
         if (isset($_GET['student_code_id'])) {
             $student_code_id = $_GET['student_code_id'];
-            $sql = "SELECT * FROM event_records WHERE student_code_id = :student_code_id";
+            $event_id = $_GET['event_id'];
+            $sql = "SELECT * FROM event_records WHERE student_code_id = :student_code_id AND event_id = :event_id";
         }
 
         if (!isset($event_id) && !isset($student_code_id)) {
@@ -36,6 +37,7 @@ switch ($method) {
 
             if (isset($student_code_id)) {
                 $stmt->bindParam(':student_code_id', $student_code_id);
+                $stmt->bindParam(':event_id', $event_id);
             }
 
             $stmt->execute();
@@ -49,8 +51,8 @@ switch ($method) {
 
     case "POST":
         $payment = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO event_records (event_records_id, event_id, amount, student_code_id, created_at, payment_type, phone_number, proof_image, reference_no) 
-                VALUES (null, :event_id, :amount, :student_code_id, :created_at, :payment_type, :phone_number, :proof_image, :reference_no)";
+        $sql = "INSERT INTO event_records (event_records_id, event_id, amount, student_code_id, created_at, payment_type, phone_number, proof_image, reference_no, generatedReference_no) 
+                VALUES (null, :event_id, :amount, :student_code_id, :created_at, :payment_type, :phone_number, :proof_image, :reference_no, :generatedReference_no)";
 
         $stmt = $conn->prepare($sql);
 
@@ -64,6 +66,7 @@ switch ($method) {
         $stmt->bindParam(':phone_number', $payment->phone_number);
         $stmt->bindParam(':proof_image', $payment->proof_image);
         $stmt->bindParam(':reference_no', $payment->reference_no);
+        $stmt->bindParam(':generatedReference_no', $payment->generatedReference_no);
 
 
 
@@ -76,60 +79,6 @@ switch ($method) {
             $response = [
                 "status" => "error",
                 "message" => "payment to add product"
-            ];
-        }
-
-        echo json_encode($response);
-        break;
-
-    case "PUT":
-        $student = json_decode(file_get_contents('php://input'));
-
-        $sql = "UPDATE students 
-                SET student_id_code = :student_id_code, 
-                    student_name = :student_name, 
-                    student_profile = :student_profile, 
-                    created_at = :created_at 
-                WHERE student_id = :student_id";
-
-        $stmt = $conn->prepare($sql);
-
-        $stmt->bindParam(':student_id', $student->student_id);
-        $stmt->bindParam(':student_id_code', $student->student_id_code);
-        $stmt->bindParam(':student_name', $student->student_name);
-        $stmt->bindParam(':student_profile', $student->student_profile);
-        $stmt->bindParam(':created_at', $student->created_at);
-
-        if ($stmt->execute()) {
-            $response = [
-                "status" => "success",
-                "message" => "student updated successfully"
-            ];
-        } else {
-            $response = [
-                "status" => "error",
-                "message" => "student to update product"
-            ];
-        }
-
-        echo json_encode($response);
-        break;
-
-    case "DELETE":
-        $student = json_decode(file_get_contents('php://input'));
-        $sql = "DELETE FROM students WHERE student_id = :student_id";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':student_id', $student->student_id);
-
-        if ($stmt->execute()) {
-            $response = [
-                "status" => "success",
-                "message" => "students deleted successfully"
-            ];
-        } else {
-            $response = [
-                "status" => "error",
-                "message" => "students delete failed"
             ];
         }
 
