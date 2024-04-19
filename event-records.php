@@ -51,8 +51,8 @@ switch ($method) {
 
     case "POST":
         $payment = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO event_records (event_records_id, event_id, amount, student_code_id, created_at, payment_type, phone_number, proof_image, reference_no, generatedReference_no) 
-                VALUES (null, :event_id, :amount, :student_code_id, :created_at, :payment_type, :phone_number, :proof_image, :reference_no, :generatedReference_no)";
+        $sql = "INSERT INTO event_records (event_records_id, event_id, amount, student_code_id, created_at, payment_type, phone_number, proof_image, reference_no, payment_status, generatedReference_no) 
+                VALUES (null, :event_id, :amount, :student_code_id, :created_at, :payment_type, :phone_number, :proof_image, :reference_no, :payment_status, :generatedReference_no)";
 
         $stmt = $conn->prepare($sql);
 
@@ -66,6 +66,7 @@ switch ($method) {
         $stmt->bindParam(':phone_number', $payment->phone_number);
         $stmt->bindParam(':proof_image', $payment->proof_image);
         $stmt->bindParam(':reference_no', $payment->reference_no);
+        $stmt->bindParam(':payment_status', $payment->payment_status);
         $stmt->bindParam(':generatedReference_no', $payment->generatedReference_no);
 
 
