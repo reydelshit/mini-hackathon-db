@@ -38,8 +38,8 @@ switch ($method) {
 
     case "POST":
         $event = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO events (event_id, event_title, event_type, event_date, created_at, status) 
-                VALUES (null, :event_title, :event_type, :event_date, :created_at, :status)";
+        $sql = "INSERT INTO events (event_id, event_title, event_type, event_deadline, created_at, status, description) 
+                VALUES (null, :event_title, :event_type, :event_deadline, :created_at, :status, :description)";
 
         $stmt = $conn->prepare($sql);
 
@@ -47,9 +47,11 @@ switch ($method) {
 
         $stmt->bindParam(':event_title', $event->event_title);
         $stmt->bindParam(':event_type', $event->event_type);
-        $stmt->bindParam(':event_date', $event->event_date);
+        $stmt->bindParam(':event_deadline', $event->event_deadline);
         $stmt->bindParam(':created_at', $created_at);
         $stmt->bindParam(':status', $event->status);
+        $stmt->bindParam(':description', $event->description);
+
 
 
         if ($stmt->execute()) {
@@ -68,32 +70,26 @@ switch ($method) {
         break;
 
     case "PUT":
-        $student = json_decode(file_get_contents('php://input'));
+        $event = json_decode(file_get_contents('php://input'));
 
-        $sql = "UPDATE students 
-                SET student_id_code = :student_id_code, 
-                    student_name = :student_name, 
-                    student_profile = :student_profile, 
-                    created_at = :created_at 
-                WHERE student_id = :student_id";
+        $sql = "UPDATE events 
+                SET status = :status
+                WHERE event_id = :event_id";
 
         $stmt = $conn->prepare($sql);
 
-        $stmt->bindParam(':student_id', $student->student_id);
-        $stmt->bindParam(':student_id_code', $student->student_id_code);
-        $stmt->bindParam(':student_name', $student->student_name);
-        $stmt->bindParam(':student_profile', $student->student_profile);
-        $stmt->bindParam(':created_at', $student->created_at);
+        $stmt->bindParam(':event_id', $event->event_id);
+        $stmt->bindParam(':status', $event->status);
 
         if ($stmt->execute()) {
             $response = [
                 "status" => "success",
-                "message" => "student updated successfully"
+                "message" => "event updated successfully"
             ];
         } else {
             $response = [
                 "status" => "error",
-                "message" => "student to update product"
+                "message" => "event to update product"
             ];
         }
 
