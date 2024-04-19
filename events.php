@@ -17,7 +17,11 @@ switch ($method) {
         }
 
         if (!isset($event_id)) {
-            $sql = "SELECT * FROM events ORDER BY event_id DESC";
+            $sql = "SELECT events.*, COUNT(event_records.event_id) AS record_count
+                    FROM events 
+                    LEFT JOIN event_records ON event_records.event_id = events.event_id 
+                    GROUP BY events.event_id
+                    ORDER BY events.created_at DESC";
         }
 
         if (isset($sql)) {

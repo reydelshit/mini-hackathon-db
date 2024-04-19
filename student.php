@@ -10,16 +10,36 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case "GET":
 
-        $sql = "SELECT * FROM students ORDER BY student_id DESC";
+        if (isset($_GET['student_id'])) {
+            $student_id = $_GET['student_id'];
+            $sql = "SELECT * FROM students WHERE student_id = :student_id";
+        }
+
+        if (isset($_GET['student_id_code'])) {
+            $student_id_code = $_GET['student_id_code'];
+            $sql = "SELECT * FROM students WHERE student_id_code = :student_id_code";
+        }
+
+        if (!isset($student_id) && !isset($student_id_code)) {
+            $sql = "SELECT * FROM students ORDER BY student_id DESC";
+        }
 
 
         if (isset($sql)) {
             $stmt = $conn->prepare($sql);
 
-            $stmt->execute();
-            $bidding = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (isset($student_id)) {
+                $stmt->bindParam(':student_id', $student_id);
+            }
 
-            echo json_encode($bidding);
+            if (isset($student_id_code)) {
+                $stmt->bindParam(':student_id_code', $student_id_code);
+            }
+
+            $stmt->execute();
+            $stud = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode($stud);
         }
 
 
@@ -28,8 +48,8 @@ switch ($method) {
 
     case "POST":
         $student = json_decode(file_get_contents('php://input'));
-        $sql = "INSERT INTO students (student_id, student_id_code, student_name, student_profile, created_at) 
-        VALUES (null, :student_id_code, :student_name, :student_profile, :created_at)";
+        $sql = "INSERT INTO students (student_id, student_id_code, student_name, student_profile, created_at, student_course, year_block) 
+        VALUES (null, :student_id_code, :student_name, :student_profile, :created_at, :student_course, :year_block)";
 
         $stmt = $conn->prepare($sql);
 
@@ -38,6 +58,8 @@ switch ($method) {
         $stmt->bindParam(':student_name', $student->student_name);
         $stmt->bindParam(':student_profile', $student->student_profile);
         $stmt->bindParam(':created_at', $created_at);
+        $stmt->bindParam(':student_course', $student->student_course);
+        $stmt->bindParam(':year_block', $student->year_block);
 
         if ($stmt->execute()) {
             $response = [
@@ -61,7 +83,9 @@ switch ($method) {
                 SET student_id_code = :student_id_code, 
                     student_name = :student_name, 
                     student_profile = :student_profile, 
-                    created_at = :created_at 
+                    created_at = :created_at ,
+                    student_course = :student_course,
+                    year_block = :year_block
                 WHERE student_id = :student_id";
 
         $stmt = $conn->prepare($sql);
@@ -71,6 +95,8 @@ switch ($method) {
         $stmt->bindParam(':student_name', $student->student_name);
         $stmt->bindParam(':student_profile', $student->student_profile);
         $stmt->bindParam(':created_at', $student->created_at);
+        $stmt->bindParam(':student_course', $student->student_course);
+        $stmt->bindParam(':year_block', $student->year_block);
 
         if ($stmt->execute()) {
             $response = [
